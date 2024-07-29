@@ -30,6 +30,22 @@ def dec_to_location_designator(dec_num):
     location_designator = f"x1{r}{str(x).zfill(2)}c{str(c).zfill(1)}s{str(s).zfill(1)}b{str(b).zfill(1)}n{str(n).zfill(1)}"
     return location_designator
 
+def deg_to_location_designator(dec_num):
+    if dec_num>64:
+        dec_num = dec_num+14  # weird jump
+    dec_num = dec_num+2560
+    # Extract the base 2 components from the decimal number
+    r = ((dec_num -1) // 2048)
+    x = (((dec_num -1) % 2048) // 256) %8
+    c = (((dec_num -1) % 128 ) // 16)%8
+    s = (((dec_num -1) % 16) // 2)%8
+    b = 0  #each node takes a blade
+    n = ((dec_num -1) % 2)
+
+    # Format the location designator
+    location_designator = f"x1{r}{str(x).zfill(2)}c{str(c).zfill(1)}s{str(s).zfill(1)}b{str(b).zfill(1)}n{str(n).zfill(1)}"
+
+    return location_designator
 
 
 def replace_de_with_xnames(text):
@@ -39,15 +55,17 @@ def replace_de_with_xnames(text):
         dec_num = int(match)
         if dec_num>2488:
             continue
+        if dec_num>2432:
+            dec_num=dec_num + 8  # First real gap
         location_designator = dec_to_location_designator(dec_num)
         text = text.replace(f"dec{match}", location_designator)
     pattern = r'deg(\d{4})'
     matches = re.findall(pattern, text)
     for match in matches:
-        dec_num = int(match)+2560  #  Magic number!!!
-        if dec_num>2648:
+        dec_num = int(match)
+        if dec_num>822648:
             continue;
-        location_designator = dec_to_location_designator(dec_num)
+        location_designator = deg_to_location_designator(dec_num)
         text = text.replace(f"deg{match}", location_designator)
     return text
 
