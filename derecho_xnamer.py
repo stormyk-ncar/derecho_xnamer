@@ -14,10 +14,12 @@
 
 import sys
 import re
-
+import argparse
 
 
 def dec_to_location_designator(dec_num):
+    if dec_num>2432:
+        dec_num=dec_num + 8  # First real gap
     # Extract the base 2 components from the decimal number
     r = ((dec_num -1) // 2048)
     x = (((dec_num -1) % 2048) // 256) %8
@@ -34,7 +36,6 @@ def deg_to_location_designator(dec_num):
     if dec_num>64:
         dec_num = dec_num+14  # weird jump
     dec_num = dec_num+2560
-    # Extract the base 2 components from the decimal number
     r = ((dec_num -1) // 2048)
     x = (((dec_num -1) % 2048) // 256) %8
     c = (((dec_num -1) % 128 ) // 16)%8
@@ -55,25 +56,55 @@ def replace_de_with_xnames(text):
         dec_num = int(match)
         if dec_num>2488:
             continue
-        if dec_num>2432:
-            dec_num=dec_num + 8  # First real gap
         location_designator = dec_to_location_designator(dec_num)
         text = text.replace(f"dec{match}", location_designator)
     pattern = r'deg(\d{4})'
     matches = re.findall(pattern, text)
     for match in matches:
-        dec_num = int(match)
-        if dec_num>822648:
+        deg_num = int(match)
+        if deg_num>82:
             continue;
-        location_designator = deg_to_location_designator(dec_num)
+        location_designator = deg_to_location_designator(deg_num)
         text = text.replace(f"deg{match}", location_designator)
     return text
 
 
 
+def build_reverse():
+    dec_list = [f"dec{str(i).zfill(4)}" for i in range(1, 2489)]
+    deg_list = [f"deg{str(i).zfill(4)}" for i in range(1, 89)]
+    combined_list = dec_list + deg_list
+    reverse_table = {}
+    for i, item in enumerate(combined_list):
+        result = replace_de_with_xnames(item)
+        reverse_table[result] = item
+    return reverse_table
 
-if __name__ == "__main__":
+def replace_x_with_denames(text):
+    #x1102c0s5b0n1
+    pattern = r'x\d{4}c\ds\db\dn\d'  #the captures are for me to see better
+    matches = re.findall(pattern, text)
+    location_designator = build_reverse()
+    for match in matches:
+        text = text.replace(f"{match}", location_designator[match])
+    return text
+
+
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Replace derecho_names (deg0012)  to Xnames (x1102c0s5b0n1) via pipe")
+    parser.add_argument('-r', '--reverse', action='store_true', help='reverse, xnames to derecho_names')
+
+    args = parser.parse_args()
+
     input_text = sys.stdin.read()
     output_text = replace_de_with_xnames(input_text)
+    if args.reverse:
+        output_text=replace_x_with_denames(input_text)
+
     sys.stdout.write(output_text)
 
+
+if __name__ == "__main__":
+    main()
