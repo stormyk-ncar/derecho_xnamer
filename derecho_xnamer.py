@@ -93,7 +93,10 @@ def replace_x_with_denames(text):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Replace derecho_names (deg0012)  to Xnames (x1102c0s5b0n1) via pipe")
+    parser = argparse.ArgumentParser(
+            description="Replace derecho_names (deg0012)  to Xnames (x1102c0s5b0n1) via pipe",
+            epilog="Example: ctt list | derecho_xnamer"
+            )
     parser.add_argument('-r', '--reverse', action='store_true', help='reverse, xnames to derecho_names')
 
     args = parser.parse_args()
